@@ -38,7 +38,7 @@ import java.util.List;
 
 public class Game implements Runnable {
     private static final Logger LOGGER = LogManager.getLogger("Main");
-    private static final float MOUSE_SENSITIVITY = 0.1f;
+    private static final float MOUSE_SENSITIVITY = 0.08f;
 
     private static int entityRenderCount;
 
@@ -183,12 +183,6 @@ public class Game implements Runnable {
 
     private void update() {
         this.blockHitResult = this.player.raytrace(8);
-
-        float dx = (float) this.mouse[2];
-        float dy = (float) this.mouse[3];
-        this.mouse[2] = 0;
-        this.mouse[3] = 0;
-        this.player.turn(dx * MOUSE_SENSITIVITY, dy * MOUSE_SENSITIVITY);
 
         this.player.tick();
 
@@ -344,6 +338,12 @@ public class Game implements Runnable {
         this.mouse[3] = y - this.mouse[1];
         this.mouse[0] = x;
         this.mouse[1] = y;
+
+        float dx = (float) this.mouse[2];
+        float dy = (float) this.mouse[3];
+        this.player.turn(dx * MOUSE_SENSITIVITY, dy * MOUSE_SENSITIVITY);
+        this.mouse[2] = 0;
+        this.mouse[3] = 0;
     }
 
     private void onMouseButton(int button, int action) {
