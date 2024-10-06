@@ -1,0 +1,6 @@
+{
+  "sources": {
+    "vertex": "entity.vsh",
+    "fragment": "entity.fsh"
+  }
+}

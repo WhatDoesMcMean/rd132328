@@ -1,0 +1,9 @@
+{
+  "sources": {
+    "vertex": "terrain.vsh",
+    "fragment": "terrain.fsh"
+  },
+  "defines": {
+    "flags": ["FOG"]
+  }
+}

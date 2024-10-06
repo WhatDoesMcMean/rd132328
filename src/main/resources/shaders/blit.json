@@ -1,0 +1,7 @@
+{
+  "sources": {
+    "vertex": "blit.vsh",
+    "fragment": "blit.fsh"
+  },
+  "defines": {"flags": []}
+}

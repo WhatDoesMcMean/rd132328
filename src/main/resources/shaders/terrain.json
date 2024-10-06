@@ -1,0 +1,6 @@
+{
+  "sources": {
+    "vertex": "terrain.vsh",
+    "fragment": "terrain.fsh"
+  }
+}
