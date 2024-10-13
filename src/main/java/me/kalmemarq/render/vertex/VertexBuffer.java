@@ -57,14 +57,13 @@ public class VertexBuffer implements Closeable {
     private void uploadIndexBuffer(DrawMode mode, int vertexCount) {
         int indexCount = mode.getIndexCount(vertexCount);
         if (this.mode != mode || indexCount > this.capacityIndexCount) {
-            boolean firstTime = false;
             if (this.indexBuffer == null) {
-                firstTime = true;
                 this.indexBuffer = MemoryUtil.memAllocInt(indexCount);
-            } else {
-                this.indexBuffer.position(0);
+            } else if (indexCount > this.capacityIndexCount) {
                 this.indexBuffer = MemoryUtil.memRealloc(this.indexBuffer, indexCount);
             }
+            this.indexBuffer.position(0);
+
             if (mode == DrawMode.QUADS) {
                 for (int i = 0, j = 0; i < indexCount; i += 6, j += 4) {
                     this.indexBuffer.put(j).put(j + 1).put(j + 2).put(j + 2).put(j + 3).put(j);
@@ -75,12 +74,12 @@ public class VertexBuffer implements Closeable {
                 }
             }
             this.indexBuffer.flip();
-            if (indexCount > this.capacityIndexCount || firstTime) {
+            if (indexCount > this.capacityIndexCount) {
                 GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, this.indexBuffer, GL30.GL_DYNAMIC_DRAW);
+                this.capacityIndexCount = indexCount;
             } else {
                 GL30.glBufferSubData(GL30.GL_ELEMENT_ARRAY_BUFFER, 0, this.indexBuffer);
             }
-            this.capacityIndexCount = this.indexCount;
         }
 
         this.mode = mode;
