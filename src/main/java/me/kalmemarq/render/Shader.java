@@ -5,13 +5,19 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import me.kalmemarq.util.IOUtils;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL45;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,11 +27,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Shader implements Closeable {
+    private static final Logger LOGGER = LogManager.getLogger("Shaders");
     private final int id;
     private final Object2IntMap<String> uniformLocations;
     private FloatBuffer matrixBuffer;
 
     public Shader(String name) {
+        LOGGER.debug("Loading \"{}\" shader", name);
         ObjectNode node;
         try {
             node = IOUtils.OBJECT_MAPPER.readValue(Files.readString(IOUtils.getResourcesPath().resolve("shaders/" + name + ".json")), ObjectNode.class);
@@ -49,6 +57,23 @@ public class Shader implements Closeable {
 
         if (GL30.glGetProgrami(this.id, GL30.GL_LINK_STATUS) == 0) {
             System.out.println(GL30.glGetProgramInfoLog(this.id));
+        }
+
+        int uniformCount = GL45.glGetProgramInterfacei(this.id, GL45.GL_UNIFORM, GL45.GL_ACTIVE_RESOURCES);
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            IntBuffer props = stack.ints(GL45.GL_TYPE, GL45.GL_LOCATION);
+            IntBuffer params = stack.mallocInt(2);
+            for (int i = 0; i < uniformCount; ++i) {
+                String uniformName = GL45.glGetProgramResourceName(this.id, GL45.GL_UNIFORM, i);
+            
+                GL45.glGetProgramResourceiv(this.id, GL45.GL_UNIFORM, i, props, null, params);
+            
+                int type = params.get(0);
+                int location = params.get(1);
+                LOGGER.debug("Loading uniform: {} loc({}) type({})", uniformName, location, getUniformTypeName(type));
+    
+                this.uniformLocations.put(uniformName, location);
+            } 
         }
 
         GL30.glDetachShader(this.id, vertex);
@@ -94,7 +119,7 @@ public class Shader implements Closeable {
     }
 
     public int getUniformLocation(String name) {
-        return this.uniformLocations.computeIfAbsent(name, (key) -> GL30.glGetUniformLocation(this.id, (String) key));
+        return this.uniformLocations.getOrDefault(name, -1);
     }
 
     public void setUniform(String name, int... values) {
@@ -189,5 +214,31 @@ public class Shader implements Closeable {
             this.values = new HashMap<>();
             this.flags = new HashSet<>();
         }
+    }
+
+    public static String getUniformTypeName(int glEnum) {
+        return switch (glEnum) {
+            case GL45.GL_FLOAT -> "float";
+            case GL45.GL_FLOAT_VEC2 -> "vec2f";
+            case GL45.GL_FLOAT_VEC3 -> "vec3f";
+            case GL45.GL_FLOAT_VEC4 -> "vec4f";
+            case GL45.GL_INT -> "int";
+            case GL45.GL_INT_VEC2 -> "vec2i";
+            case GL45.GL_INT_VEC3 -> "vec3i";
+            case GL45.GL_INT_VEC4 -> "vec4i";
+            case GL45.GL_BOOL -> "bool";
+            case GL45.GL_BOOL_VEC2 -> "vec2b";
+            case GL45.GL_BOOL_VEC3 -> "vec3b";
+            case GL45.GL_BOOL_VEC4 -> "vec4b";
+            case GL45.GL_FLOAT_MAT2 -> "mat2";
+            case GL45.GL_FLOAT_MAT3 -> "mat3";
+            case GL45.GL_FLOAT_MAT4 -> "mat4";
+            case GL45.GL_SAMPLER_2D -> "sampler2D";
+            case GL45.GL_UNSIGNED_INT -> "uint";
+            case GL45.GL_UNSIGNED_INT_VEC2 -> "vec2ui";
+            case GL45.GL_UNSIGNED_INT_VEC3 -> "vec3ui";
+            case GL45.GL_UNSIGNED_INT_VEC4 -> "vec4ui";
+            default -> "unknown";
+        };
     }
 }

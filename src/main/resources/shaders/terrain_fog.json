@@ -1,7 +1,7 @@
 {
   "sources": {
-    "vertex": "terrain.vsh",
-    "fragment": "terrain.fsh"
+    "vertex": "terrain.vert.glsl",
+    "fragment": "terrain.frag.glsl"
   },
   "defines": {
     "flags": ["FOG"]

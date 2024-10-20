@@ -1,7 +1,6 @@
 {
   "sources": {
-    "vertex": "blit.vsh",
-    "fragment": "blit.fsh"
-  },
-  "defines": {"flags": []}
+    "vertex": "blit.vert.glsl",
+    "fragment": "blit.frag.glsl"
+  }
 }

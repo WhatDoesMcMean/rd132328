@@ -11,9 +11,11 @@ import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Objects;
@@ -40,19 +42,42 @@ public class IOUtils {
     }
 
     public static ByteBuffer readInputStreamToByteBuffer(InputStream inputStream) {
-        ByteBuffer buffer = MemoryUtil.memAlloc(8196);
-
         try (ReadableByteChannel channel = Channels.newChannel(inputStream)) {
+            return readToByteBuffer(channel, 8196);
+        } catch (IOException ignored) {
+            return null;
+        }
+    }
+
+    public static ByteBuffer readFileToByteBuffer(Path path) {
+        try (SeekableByteChannel channel = Files.newByteChannel(path)) {
+            return readToByteBuffer(channel, (int) channel.size());
+        } catch (IOException ignored) {
+            return null;
+        }
+    }
+
+    private static ByteBuffer readToByteBuffer(ReadableByteChannel channel, int bufferInitialSize) {
+        ByteBuffer buffer = MemoryUtil.memAlloc(bufferInitialSize);
+        try {
             while (channel.read(buffer) != -1) {
-                if (buffer.hasRemaining()) {
-                    buffer = MemoryUtil.memRealloc(buffer, buffer.capacity() * 3 / 2);
-                }
+                if (buffer.hasRemaining()) continue;
+                buffer = MemoryUtil.memRealloc(buffer, buffer.capacity() * 2);
             }
-            buffer.flip();
-            return MemoryUtil.memSlice(buffer);
-        } catch (IOException e) {
+        } catch (IOException ignored) {
             MemoryUtil.memFree(buffer);
             return null;
+        }
+        buffer.flip();
+        return buffer;
+    }
+
+    public static boolean ensureDirectory(Path path) {
+        try {
+            Files.createDirectories(path);
+            return true;
+        } catch (IOException ignored) {
+            return false;
         }
     }
 }

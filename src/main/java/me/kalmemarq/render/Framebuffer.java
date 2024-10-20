@@ -147,6 +147,18 @@ public class Framebuffer implements Closeable {
         return this.fbo;
     }
 
+    public int getWidth() {
+        return this.width;
+    }
+    
+    public int getHeight() {
+        return this.height;
+    }
+
+    public int getColorAttachmentTxr() {
+        return this.colorAttachmentTxr;
+    }
+
     @Override
     public void close() {
         this.blitShader.close();

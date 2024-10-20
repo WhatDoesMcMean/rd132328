@@ -1,6 +1,9 @@
 package me.kalmemarq.render;
 
 import me.kalmemarq.util.IOUtils;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL45;
 import org.lwjgl.stb.STBImage;
@@ -8,13 +11,12 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Texture implements Closeable {
+    private static final Logger LOGGER = LogManager.getLogger("Textures");
     private final int id;
 
     public Texture() {
@@ -22,12 +24,8 @@ public class Texture implements Closeable {
     }
 
     public void load(Path path) {
-        ByteBuffer pixelsBuffer;
-        try {
-            pixelsBuffer = IOUtils.readInputStreamToByteBuffer(Files.newInputStream(path));
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read texture: " + path, e);
-        }
+        LOGGER.debug("Loading \"{}\"", path);
+        ByteBuffer pixelsBuffer = IOUtils.readFileToByteBuffer(path);
 
         GL45.glTextureParameteri(this.id, GL30.GL_TEXTURE_MIN_FILTER, GL30.GL_NEAREST);
         GL45.glTextureParameteri(this.id, GL30.GL_TEXTURE_MAG_FILTER, GL30.GL_NEAREST);

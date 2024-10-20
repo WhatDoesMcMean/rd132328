@@ -6,7 +6,7 @@ import me.kalmemarq.render.vertex.BufferBuilder;
 import me.kalmemarq.util.TimeUtils;
 import org.joml.Math;
 
-public class ZombieModel extends Model {
+public class ZombieModel extends Model<ZombieEntity> {
     private final Model.ModelPart root;
     private final Model.ModelPart head;
     private final Model.ModelPart body;
@@ -34,7 +34,7 @@ public class ZombieModel extends Model {
                 org.joml.Math.lerp(entity.prevPosition.y, entity.position.y, tickDelta),
                 org.joml.Math.lerp(entity.prevPosition.z, entity.position.z, tickDelta));
         float size = 1.86f / 32f;
-        double time = (double) TimeUtils.getCurrentMillis() / 1E3d * 10d + (double)entity.timeOffs;
+        double time = (double) TimeUtils.millisTime() / 1E3d * 10d + (double)entity.timeOffs;
         float yy = (float)(-Math.abs(Math.sin(time * 0.6662d)) * 5d - 23d);
         matrices.scale(1f, -1f, 1f);
         matrices.scale(size, size, size);
@@ -42,7 +42,7 @@ public class ZombieModel extends Model {
         matrices.rotateY(entity.yaw + ((float) Math.PI / 2f));
 
         this.head.pitch = (float) Math.sin(time * 0.83d);
-        this.head.yaw = (float) Math.sin(time) * 0.8F;
+        this.head.yaw = (float) Math.sin(time) * 0.8f;
         this.leftArm.yaw = (float) Math.sin(time * 0.6662d + Math.PI) * 2f;
         this.leftArm.roll = (float) (Math.sin(time * 0.2312d) + 1d);
         this.rightArm.yaw = (float) Math.sin(time * 0.6662d) * 2f;

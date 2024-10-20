@@ -1,7 +1,8 @@
 package me.kalmemarq.entity.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import me.kalmemarq.entity.ZombieEntity;
+
+import me.kalmemarq.entity.Entity;
 import me.kalmemarq.render.MatrixStack;
 import me.kalmemarq.render.vertex.BufferBuilder;
 import me.kalmemarq.util.IOUtils;
@@ -14,16 +15,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class Model {
+public abstract class Model<E extends Entity> {
     public static Model.ModelPart loadRoot(String name) {
         try {
-            return Model.ModelPart.loadFromJson(IOUtils.OBJECT_MAPPER.readTree(Files.readString(IOUtils.getResourcesPath().resolve("model/" + name + ".json"))));
+            return Model.ModelPart.loadFromJson(IOUtils.OBJECT_MAPPER.readTree(Files.readString(IOUtils.getResourcesPath().resolve("models/" + name + ".json"))));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    abstract public void render(BufferBuilder builder, ZombieEntity entity, float tickDelta);
+    abstract public void render(BufferBuilder builder, E entity, float tickDelta);
 
     public static class ModelPart {
         public float yaw;
